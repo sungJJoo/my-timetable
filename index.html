@@ -225,7 +225,7 @@
   .modal h2{margin:0 0 18px; font-size:1.1rem; font-weight:500; color:var(--ink-strong)}
   .field{margin-bottom:12px}
   .field label{display:block; font-size:.75rem; font-weight:500; color:var(--ink-soft); margin-bottom:5px}
-  .field input[type=text],.field select,.field input[type=time],.field input[type=month]{
+  .field input[type=text],.field select,.field input[type=time],.field input[type=date]{
     width:100%; padding:9px 11px; border-radius:6px; border:1px solid var(--line);
     background:var(--surface); outline:none; transition:border-color .12s;
   }
@@ -307,8 +307,8 @@
       <select id="fDay"></select>
     </div>
     <div class="field">
-      <label for="fUntil">종료 시점 (선택 · 몇월까지 반복할지)</label>
-      <input type="month" id="fUntil">
+      <label for="fUntil">종료 시점 (선택 · 몇월 며칠까지 반복할지)</label>
+      <input type="date" id="fUntil">
     </div>
     <div class="row2">
       <div class="field">
@@ -423,9 +423,13 @@
     return h < 12 ? "오전 "+h+"시" : "오후 "+(h-12)+"시";
   }
   var todayD = new Date();
-  var THIS_MONTH = todayD.getFullYear() + "-" + String(todayD.getMonth()+1).padStart(2,"0");
-  function isExpired(ev){ return !!ev.until && ev.until < THIS_MONTH; }
-  function untilLabel(u){ var p = u.split("-"); return "~"+(+p[1])+"월"; }
+  var THIS_DATE = todayD.getFullYear() + "-" + String(todayD.getMonth()+1).padStart(2,"0") + "-" + String(todayD.getDate()).padStart(2,"0");
+  function untilEndKey(u){ return u.length === 7 ? u+"-31" : u; } // 구버전(월만 저장)은 그 달 말일까지로 간주
+  function isExpired(ev){ return !!ev.until && untilEndKey(ev.until) < THIS_DATE; }
+  function untilLabel(u){
+    var p = u.split("-").map(Number);
+    return p.length >= 3 ? "~"+p[1]+"월 "+p[2]+"일" : "~"+p[1]+"월";
+  }
 
   /* ── 헤더 날짜 ── */
   var now = new Date();
