@@ -343,14 +343,10 @@
 
 <div class="overlay" id="setOverlay">
   <form class="modal" id="setModal">
-    <h2>구글 시트 동기화 설정</h2>
-    <div class="field">
-      <label for="sUrl">Apps Script 웹 앱 URL</label>
-      <input type="text" id="sUrl" placeholder="https://script.google.com/macros/s/…/exec">
-    </div>
+    <h2>구글 시트 동기화</h2>
     <div class="field">
       <label for="sKey">비밀 키</label>
-      <input type="text" id="sKey" placeholder="스크립트의 KEY와 같은 값">
+      <input type="text" id="sKey" placeholder="Apps Script의 KEY와 같은 값">
     </div>
     <div class="err" id="sErr"></div>
     <div class="modal-actions">
@@ -703,12 +699,13 @@
   });
 
   /* ── 구글 시트 동기화 ── */
+  var SYNC_URL = "https://script.google.com/macros/s/AKfycbyv0DWfLLlEctusR1Guz6KG7tAez63zz7F1-8a7vMQCLgVycOrzjIH2rlnlslTA0bPB/exec";
   var SKEY = "fox-timetable-sync-v1";
   var sync = { cfg: loadCfg(), timer: null, lastOk: 0 };
   function loadCfg(){
     try{
       var c = JSON.parse(localStorage.getItem(SKEY));
-      if(c && c.url) return c;
+      if(c && c.key) return { key: c.key };
     }catch(e){}
     return null;
   }
@@ -718,11 +715,11 @@
     chipLabel.textContent = msg;
   }
   function serverGet(cfg){
-    return fetch(cfg.url + (cfg.url.indexOf("?")<0 ? "?" : "&") + "key=" + encodeURIComponent(cfg.key||""))
+    return fetch(SYNC_URL + "?key=" + encodeURIComponent(cfg.key||""))
       .then(function(r){ return r.json(); });
   }
   function serverPost(cfg, data){
-    return fetch(cfg.url, { method:"POST", body: JSON.stringify({ key: cfg.key||"", data: data }) })
+    return fetch(SYNC_URL, { method:"POST", body: JSON.stringify({ key: cfg.key||"", data: data }) })
       .then(function(r){ return r.json(); });
   }
   function scheduleSync(){
@@ -762,11 +759,10 @@
   /* 동기화 설정 모달 */
   function openSet(){
     $("sErr").textContent = "";
-    $("sUrl").value = sync.cfg ? sync.cfg.url : "";
     $("sKey").value = sync.cfg ? (sync.cfg.key||"") : "";
     $("sOff").hidden = !sync.cfg;
     $("setOverlay").classList.add("open");
-    $("sUrl").focus();
+    $("sKey").focus();
   }
   function closeSet(){ $("setOverlay").classList.remove("open"); }
   chip.addEventListener("click", openSet);
@@ -780,11 +776,11 @@
   });
   $("setModal").addEventListener("submit", function(e){
     e.preventDefault();
-    var url = $("sUrl").value.trim(), key = $("sKey").value.trim();
-    if(url.indexOf("http") !== 0){ $("sErr").textContent = "웹 앱 URL을 입력해 주세요."; return; }
+    var key = $("sKey").value.trim();
+    if(!key){ $("sErr").textContent = "비밀 키를 입력해 주세요."; return; }
     $("sErr").textContent = "";
     $("sSave").disabled = true; $("sSave").textContent = "확인 중…";
-    var cfg = { url: url, key: key };
+    var cfg = { key: key };
     serverGet(cfg).then(function(res){
       if(res && res.events){
         sync.cfg = cfg;
@@ -792,10 +788,10 @@
         closeSet();
         pullNow(true);
       }else{
-        $("sErr").textContent = (res && res.error === "bad key") ? "비밀 키가 스크립트의 KEY와 달라요." : "응답이 올바르지 않아요. URL을 확인해 주세요.";
+        $("sErr").textContent = (res && res.error === "bad key") ? "비밀 키가 스크립트의 KEY와 달라요." : "응답이 올바르지 않아요.";
       }
     }).catch(function(){
-      $("sErr").textContent = "연결하지 못했어요. URL과 배포 설정(액세스: 모든 사용자)을 확인해 주세요.";
+      $("sErr").textContent = "연결하지 못했어요. 잠시 후 다시 시도해 주세요.";
     }).finally(function(){
       $("sSave").disabled = false; $("sSave").textContent = "연결 테스트 후 저장";
     });
