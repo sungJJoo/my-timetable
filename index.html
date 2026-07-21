@@ -2,47 +2,50 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>내 시간표</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Nanum+Pen+Script&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#FFFFFF; --surface:#FFFFFF; --surface2:#F1F3F4;
-    --ink:#3C4043; --ink-strong:#202124; --ink-soft:#70757A; --line:#DADCE0;
-    --accent:#1A73E8; --accent-soft:#E8F0FE; --accent-text:#1967D2;
-    --danger:#D93025; --now:#EA4335;
-    --shadow:0 1px 2px rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
-    --shadow-lg:0 8px 12px 6px rgba(60,64,67,.15), 0 4px 4px rgba(60,64,67,.3);
+    --bg:#FFF8F6; --surface:#FFFFFF; --surface2:#FCEEF0;
+    --ink:#4A2E35; --ink-strong:#3A2129; --ink-soft:#9C7B84; --line:#F0DCDF;
+    --accent:#E0607D; --accent-soft:#FCE4E9; --accent-text:#C2436A;
+    --danger:#D64550; --now:#E0607D;
+    --shadow:0 1px 2px rgba(74,46,53,.16), 0 1px 3px 1px rgba(74,46,53,.1);
+    --shadow-lg:0 8px 16px 6px rgba(74,46,53,.12), 0 4px 6px rgba(74,46,53,.18);
   }
   @media (prefers-color-scheme: dark){
     :root{
-      --bg:#1F1F1F; --surface:#1F1F1F; --surface2:#2D2E31;
-      --ink:#E3E3E3; --ink-strong:#F1F3F4; --ink-soft:#9AA0A6; --line:#444746;
-      --accent:#8AB4F8; --accent-soft:#394457; --accent-text:#AECBFA;
-      --danger:#F28B82; --now:#F28B82;
+      --bg:#241419; --surface:#2E1B21; --surface2:#3B242C;
+      --ink:#F3E6E9; --ink-strong:#FBF0F2; --ink-soft:#B48C95; --line:#4A2E37;
+      --accent:#F08CA3; --accent-soft:#4A2530; --accent-text:#F5A8BA;
+      --danger:#F0808C; --now:#F0808C;
       --shadow:0 1px 2px rgba(0,0,0,.5), 0 1px 3px 1px rgba(0,0,0,.35);
-      --shadow-lg:0 8px 12px 6px rgba(0,0,0,.35), 0 4px 4px rgba(0,0,0,.5);
+      --shadow-lg:0 8px 16px 6px rgba(0,0,0,.35), 0 4px 6px rgba(0,0,0,.5);
     }
   }
   :root[data-theme="light"]{
-    --bg:#FFFFFF; --surface:#FFFFFF; --surface2:#F1F3F4;
-    --ink:#3C4043; --ink-strong:#202124; --ink-soft:#70757A; --line:#DADCE0;
-    --accent:#1A73E8; --accent-soft:#E8F0FE; --accent-text:#1967D2;
-    --danger:#D93025; --now:#EA4335;
-    --shadow:0 1px 2px rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
-    --shadow-lg:0 8px 12px 6px rgba(60,64,67,.15), 0 4px 4px rgba(60,64,67,.3);
+    --bg:#FFF8F6; --surface:#FFFFFF; --surface2:#FCEEF0;
+    --ink:#4A2E35; --ink-strong:#3A2129; --ink-soft:#9C7B84; --line:#F0DCDF;
+    --accent:#E0607D; --accent-soft:#FCE4E9; --accent-text:#C2436A;
+    --danger:#D64550; --now:#E0607D;
+    --shadow:0 1px 2px rgba(74,46,53,.16), 0 1px 3px 1px rgba(74,46,53,.1);
+    --shadow-lg:0 8px 16px 6px rgba(74,46,53,.12), 0 4px 6px rgba(74,46,53,.18);
   }
   :root[data-theme="dark"]{
-    --bg:#1F1F1F; --surface:#1F1F1F; --surface2:#2D2E31;
-    --ink:#E3E3E3; --ink-strong:#F1F3F4; --ink-soft:#9AA0A6; --line:#444746;
-    --accent:#8AB4F8; --accent-soft:#394457; --accent-text:#AECBFA;
-    --danger:#F28B82; --now:#F28B82;
+    --bg:#241419; --surface:#2E1B21; --surface2:#3B242C;
+    --ink:#F3E6E9; --ink-strong:#FBF0F2; --ink-soft:#B48C95; --line:#4A2E37;
+    --accent:#F08CA3; --accent-soft:#4A2530; --accent-text:#F5A8BA;
+    --danger:#F0808C; --now:#F0808C;
     --shadow:0 1px 2px rgba(0,0,0,.5), 0 1px 3px 1px rgba(0,0,0,.35);
-    --shadow-lg:0 8px 12px 6px rgba(0,0,0,.35), 0 4px 4px rgba(0,0,0,.5);
+    --shadow-lg:0 8px 16px 6px rgba(0,0,0,.35), 0 4px 6px rgba(0,0,0,.5);
   }
   *{box-sizing:border-box}
   html,body{margin:0}
   body{
     background:var(--bg); color:var(--ink);
-    font-family:"Google Sans Text","Google Sans",Roboto,"Segoe UI","Pretendard Variable",Pretendard,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
-    line-height:1.5; -webkit-font-smoothing:antialiased;
+    font-family:"Gowun Dodum","Pretendard Variable",Pretendard,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    line-height:1.6; -webkit-font-smoothing:antialiased;
   }
   button{font:inherit; color:inherit; cursor:pointer}
   input,select,textarea{font:inherit; color:inherit}
@@ -55,7 +58,11 @@
     padding:12px 0; border-bottom:1px solid var(--line); margin-bottom:14px;
   }
   .brand{display:flex; align-items:baseline; gap:14px; flex-wrap:wrap}
-  h1{margin:0; font-size:1.375rem; font-weight:500; color:var(--ink-strong); letter-spacing:0}
+  h1{
+    margin:0; font-size:1.9rem; font-weight:400; color:var(--ink-strong); letter-spacing:.01em;
+    font-family:"Nanum Pen Script",cursive;
+  }
+  h1 .heart{color:var(--accent); font-size:1.1rem; margin-left:2px}
   .date-line{font-size:.85rem; color:var(--ink-soft)}
   .head-actions{display:flex; align-items:center; gap:12px; flex-wrap:wrap}
   .add-btn{
@@ -84,29 +91,35 @@
     width:22px; height:22px; border-radius:50%;
     background:var(--who,var(--line)); color:#fff; font-size:.68rem; font-weight:700;
   }
-  .author-pick{display:flex; gap:8px}
+  .author-pick{display:flex; align-items:center; gap:8px; position:relative}
   .author-pick button{
     flex:1; display:flex; align-items:center; justify-content:center; gap:7px;
-    border:1.5px solid var(--line); border-radius:8px; padding:8px; font-size:.86rem; font-weight:500;
+    border:1.5px solid var(--line); border-radius:12px; padding:8px; font-size:.86rem; font-weight:500;
     background:var(--surface); color:var(--ink); transition:border-color .12s, background .12s;
   }
   .author-pick button .avatar{width:20px; height:20px; font-size:.66rem}
-  .author-pick button.sel{border-color:var(--who); background:color-mix(in srgb, var(--who) 12%, var(--surface)); color:var(--ink-strong)}
+  .author-pick button.sel{border-color:var(--who); background:color-mix(in srgb, var(--who) 14%, var(--surface)); color:var(--ink-strong)}
+  .together-hint{
+    display:block; text-align:center; margin-top:6px; font-size:.78rem; color:var(--accent-text);
+    font-family:"Nanum Pen Script",cursive; font-size:1.05rem; height:0; overflow:hidden; opacity:0;
+    transition:opacity .15s ease, height .15s ease;
+  }
+  .author-pick.together + .together-hint{height:1.4em; opacity:1}
 
   /* ── 오늘의 한 문장 ── */
   .quote{
-    padding:10px 16px; border-radius:8px;
+    padding:12px 18px; border-radius:14px;
     background:var(--accent-soft); color:var(--accent-text);
-    display:flex; align-items:center; gap:12px; font-size:.9rem;
+    display:flex; align-items:center; gap:12px;
   }
-  .quote-text{flex:1; line-height:1.5}
-  .quote-by{opacity:.75; margin-left:.5em; font-size:.8rem}
+  .quote-text{flex:1; line-height:1.5; font-family:"Nanum Pen Script",cursive; font-size:1.25rem}
+  .quote-by{opacity:.75; margin-left:.5em; font-size:.85rem}
   .quote-next{
     flex-shrink:0; border:0; background:transparent; color:inherit;
     border-radius:50%; width:32px; height:32px; font-size:1rem;
     transition:background .15s ease;
   }
-  .quote-next:hover{background:rgba(26,115,232,.12)}
+  .quote-next:hover{background:color-mix(in srgb, var(--accent) 15%, transparent)}
 
   /* ── 본문 레이아웃 ── */
   .main{display:flex; gap:20px; margin-top:16px; align-items:flex-start}
@@ -124,7 +137,7 @@
   }
 
   /* ── 시간표 그리드 (GCal 주간 뷰) ── */
-  .grid-card{background:var(--surface); border:1px solid var(--line); border-radius:8px; overflow-x:auto}
+  .grid-card{background:var(--surface); border:1px solid var(--line); border-radius:16px; overflow-x:auto}
   .grid{min-width:660px; --hour:48px; position:relative}
   .grid-head{display:grid; grid-template-columns:56px repeat(7,1fr); border-bottom:1px solid var(--line)}
   .gh-day{padding:8px 4px 10px; text-align:center}
@@ -150,7 +163,7 @@
   .day-col:hover{background:color-mix(in srgb, var(--ink) 3%, transparent)}
 
   .ev{
-    position:absolute; left:2px; right:4px; border-radius:4px; padding:4px 8px;
+    position:absolute; left:2px; right:4px; border-radius:9px; padding:4px 8px;
     background:var(--ev); color:#fff;
     font-size:.74rem; line-height:1.35; overflow:hidden; cursor:pointer;
     transition:box-shadow .12s ease, filter .12s ease;
@@ -162,6 +175,11 @@
   .ev .avatar{
     position:absolute; top:3px; right:3px; width:15px; height:15px; font-size:.58rem;
     background:#fff; color:var(--who,#333);
+  }
+  .ev .ev-heart{
+    position:absolute; top:2px; right:2px; width:16px; height:16px;
+    display:flex; align-items:center; justify-content:center; border-radius:50%;
+    background:#fff; color:var(--accent); font-size:.78rem; line-height:1;
   }
   .ev.expired{opacity:.38; filter:grayscale(.4)}
   .ev.expired:hover{opacity:.7; filter:none}
@@ -182,18 +200,20 @@
 
   /* ── 메모 ── */
   .note{
-    background:var(--surface); border:1px solid var(--line); border-radius:8px;
+    background:var(--surface); border:1px solid var(--line); border-radius:14px;
     padding:12px 14px; margin-bottom:10px; position:relative;
     transition:box-shadow .15s ease;
   }
   .note:hover{box-shadow:var(--shadow)}
   .note-head{display:flex; align-items:center; margin-bottom:6px}
+  .note-authors{display:flex; gap:6px}
   .note-who{
-    display:inline-flex; align-items:center; gap:6px; border:0; background:transparent;
-    font-size:.74rem; font-weight:600; color:var(--ink-soft); padding:2px 6px 2px 2px; border-radius:20px;
+    border:1.5px solid var(--line); border-radius:50%; padding:1px; background:var(--surface);
+    transition:border-color .12s, transform .1s;
   }
-  .note-who .avatar{width:18px; height:18px; font-size:.6rem}
-  .note-who:hover{background:var(--surface2)}
+  .note-who .avatar{width:20px; height:20px; font-size:.65rem}
+  .note-who.sel{border-color:var(--who); transform:scale(1.1)}
+  .note-who:hover{border-color:var(--who)}
   .note textarea{
     width:100%; border:0; background:transparent; resize:none; outline:none;
     font-size:.88rem; line-height:1.55; min-height:2.4em; display:block;
@@ -207,7 +227,7 @@
   .note:hover .del, .note:focus-within .del{opacity:1}
   .note .del:hover{color:var(--danger); background:var(--surface2)}
   .note-add{
-    width:100%; padding:10px; border-radius:8px; border:1px dashed var(--line);
+    width:100%; padding:10px; border-radius:14px; border:1px dashed var(--line);
     background:transparent; color:var(--ink-soft); font-size:.88rem;
   }
   .note-add:hover{border-color:var(--accent); color:var(--accent); background:var(--accent-soft)}
@@ -219,14 +239,14 @@
   }
   .overlay.open{display:flex}
   .modal{
-    background:var(--surface); border-radius:12px; box-shadow:var(--shadow-lg);
+    background:var(--surface); border-radius:20px; box-shadow:var(--shadow-lg);
     width:100%; max-width:400px; padding:24px;
   }
-  .modal h2{margin:0 0 18px; font-size:1.1rem; font-weight:500; color:var(--ink-strong)}
+  .modal h2{margin:0 0 18px; font-size:1.3rem; font-weight:400; color:var(--ink-strong); font-family:"Nanum Pen Script",cursive}
   .field{margin-bottom:12px}
   .field label{display:block; font-size:.75rem; font-weight:500; color:var(--ink-soft); margin-bottom:5px}
   .field input[type=text],.field select,.field input[type=time],.field input[type=date]{
-    width:100%; padding:9px 11px; border-radius:6px; border:1px solid var(--line);
+    width:100%; padding:9px 11px; border-radius:10px; border:1px solid var(--line);
     background:var(--surface); outline:none; transition:border-color .12s;
   }
   .field input:focus,.field select:focus{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent)}
@@ -262,7 +282,7 @@
 <div class="wrap">
   <header>
     <div class="brand">
-      <h1>내 시간표</h1>
+      <h1>내 시간표 <span class="heart">♡</span></h1>
       <span class="date-line" id="dateLine"></span>
     </div>
     <div class="head-actions">
@@ -325,8 +345,9 @@
       <input type="text" id="fPlace" placeholder="예: 독서실 3층" maxlength="40">
     </div>
     <div class="field">
-      <label>작성자</label>
+      <label>작성자 (여러 명 선택 가능)</label>
       <div class="author-pick" id="authorPick"></div>
+      <span class="together-hint">♡ 우리 둘의 시간이에요</span>
     </div>
     <div class="field">
       <label>색상</label>
@@ -363,9 +384,9 @@
   var KEY = "fox-timetable-v1";
   var DAYS = ["월","화","수","목","금","토","일"];
   var START_H = 7, END_H = 24;
-  /* 구글 캘린더 이벤트 팔레트: 피콕, 블루베리, 바질, 탠저린, 그레이프, 플라밍고, 세이지, 그래파이트 */
-  var COLORS = ["#039BE5","#3F51B5","#0B8043","#F4511E","#8E24AA","#E67C73","#33B679","#616161"];
-  var AUTHORS = { "성주": "#1A73E8", "혜원": "#C2185B" };
+  /* 러블리 팔레트: 로즈, 테라코타, 오키드, 허니, 라벤더, 브릭, 세이지, 모카 */
+  var COLORS = ["#E0607D","#D97757","#B5739E","#D9A441","#8C6A9C","#C2564B","#4E8B7C","#6B5B73"];
+  var AUTHORS = { "성주": "#B8562E", "혜원": "#A8447A" };
   var AUTHOR_KEYS = Object.keys(AUTHORS);
 
   var QUOTES = [
@@ -404,9 +425,19 @@
   }
   function save(){ localStorage.setItem(KEY, JSON.stringify(state)); scheduleSync(); }
   function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+  function normalizeAuthors(list){
+    var arr = Array.isArray(list) ? list.filter(function(a){ return AUTHORS[a]; }) : [];
+    return arr.length ? arr : [AUTHOR_KEYS[0]];
+  }
   function migrateAuthors(){
-    state.events.forEach(function(e){ if(!AUTHORS[e.author]) e.author = AUTHOR_KEYS[0]; });
-    state.notes.forEach(function(n){ if(!AUTHORS[n.author]) n.author = AUTHOR_KEYS[0]; });
+    state.events.forEach(function(e){
+      e.authors = normalizeAuthors(e.authors || (e.author ? [e.author] : null));
+      delete e.author;
+    });
+    state.notes.forEach(function(n){
+      n.authors = normalizeAuthors(n.authors || (n.author ? [n.author] : null));
+      delete n.author;
+    });
   }
   migrateAuthors();
 
@@ -511,15 +542,22 @@
       var h = (ev.end - ev.start)/60*hourPx;
       el.style.top = (top+1)+"px";
       el.style.height = Math.max(h-3, 18)+"px";
-      el.innerHTML = "<span class='avatar'></span><b></b><small>"+fmtMin(ev.start)+"–"+fmtMin(ev.end)+
+      el.innerHTML = "<b></b><small>"+fmtMin(ev.start)+"–"+fmtMin(ev.end)+
                      (ev.until ? " · "+untilLabel(ev.until)+(isExpired(ev)?" 종료":"") : "")+"</small>" +
                      (ev.place ? '<span class="place"></span>' : "");
       el.querySelector("b").textContent = ev.title;
       if(ev.place) el.querySelector(".place").textContent = ev.place;
-      var avEl = el.querySelector(".avatar");
-      avEl.textContent = ev.author ? ev.author[0] : "";
-      avEl.style.setProperty("--who", AUTHORS[ev.author] || "#888");
-      avEl.title = ev.author || "";
+      var badge = document.createElement("span");
+      if(ev.authors.length > 1){
+        badge.className = "ev-heart";
+        badge.textContent = "♡";
+      }else{
+        badge.className = "avatar";
+        badge.textContent = ev.authors[0][0];
+        badge.style.setProperty("--who", AUTHORS[ev.authors[0]] || "#888");
+      }
+      badge.title = ev.authors.join(" · ");
+      el.appendChild(badge);
       el.addEventListener("click", function(){ openModal(ev.id); });
       col.appendChild(el);
     });
@@ -540,7 +578,7 @@
   setInterval(renderNowLine, 60000);
 
   /* ── 일정 모달 ── */
-  var editingId = null, selColor = 0, selAuthor = AUTHOR_KEYS[0];
+  var editingId = null, selColor = 0, selAuthors = [AUTHOR_KEYS[0]];
   var daySel = $("fDay");
   var apick = $("authorPick");
   AUTHOR_KEYS.forEach(function(a){
@@ -550,12 +588,25 @@
     b.innerHTML = "<span class='avatar'></span>"+a;
     b.querySelector(".avatar").textContent = a[0];
     b.querySelector(".avatar").style.setProperty("--who", AUTHORS[a]);
-    b.addEventListener("click", function(){ selectAuthor(a); });
+    b.addEventListener("click", function(){ toggleAuthor(a); });
     apick.appendChild(b);
   });
-  function selectAuthor(a){
-    selAuthor = a;
-    apick.querySelectorAll("button").forEach(function(b,j){ b.classList.toggle("sel", AUTHOR_KEYS[j]===a); });
+  function toggleAuthor(a){
+    var i = selAuthors.indexOf(a);
+    if(i > -1){
+      if(selAuthors.length > 1) selAuthors.splice(i, 1); // 최소 한 명은 유지
+    }else{
+      selAuthors.push(a);
+    }
+    paintAuthorPick();
+  }
+  function setSelectedAuthors(list){
+    selAuthors = normalizeAuthors(list);
+    paintAuthorPick();
+  }
+  function paintAuthorPick(){
+    apick.querySelectorAll("button").forEach(function(b,j){ b.classList.toggle("sel", selAuthors.indexOf(AUTHOR_KEYS[j]) > -1); });
+    apick.classList.toggle("together", selAuthors.length > 1);
   }
   DAYS.forEach(function(d,i){
     var o = document.createElement("option");
@@ -590,7 +641,7 @@
       $("fUntil").value = ev.until || "";
       $("fPlace").value = ev.place || "";
       selectColor(ev.color);
-      selectAuthor(AUTHORS[ev.author] ? ev.author : AUTHOR_KEYS[0]);
+      setSelectedAuthors(ev.authors);
       $("delBtn").hidden = false;
     }else{
       $("modalTitle").textContent = "일정 추가";
@@ -602,7 +653,7 @@
       $("fUntil").value = "";
       $("fPlace").value = "";
       selectColor(0);
-      selectAuthor(AUTHOR_KEYS[0]);
+      setSelectedAuthors([AUTHOR_KEYS[0]]);
       $("delBtn").hidden = true;
     }
     $("overlay").classList.add("open");
@@ -625,7 +676,7 @@
     if(en <= s){ $("fErr").textContent = "종료 시각은 시작 시각보다 늦어야 해요."; return; }
     if(s < START_H*60 || en > END_H*60){ $("fErr").textContent = "시간표 범위는 07:00~24:00이에요."; return; }
     var until = $("fUntil").value;
-    var data = { day:+daySel.value, start:s, end:en, title:title, place:$("fPlace").value.trim(), color:selColor, author:selAuthor, until:until };
+    var data = { day:+daySel.value, start:s, end:en, title:title, place:$("fPlace").value.trim(), color:selColor, authors:selAuthors.slice(), until:until };
     if(editingId){
       var ev = state.events.find(function(x){ return x.id===editingId; });
       Object.assign(ev, data);
@@ -651,21 +702,29 @@
       card.className = "note";
       var headRow = document.createElement("div");
       headRow.className = "note-head";
-      var who = document.createElement("button");
-      who.type = "button"; who.className = "note-who";
-      who.innerHTML = "<span class='avatar'></span><span></span>";
-      function paintWho(){
-        who.querySelector(".avatar").style.setProperty("--who", AUTHORS[n.author]);
-        who.querySelector(".avatar").textContent = n.author[0];
-        who.querySelector("span:last-child").textContent = n.author;
-      }
-      paintWho();
-      who.addEventListener("click", function(){
-        var idx = AUTHOR_KEYS.indexOf(n.author);
-        n.author = AUTHOR_KEYS[(idx+1) % AUTHOR_KEYS.length];
-        paintWho(); save();
+      var authorsWrap = document.createElement("div");
+      authorsWrap.className = "note-authors";
+      AUTHOR_KEYS.forEach(function(a){
+        var who = document.createElement("button");
+        who.type = "button"; who.className = "note-who";
+        who.title = a;
+        who.style.setProperty("--who", AUTHORS[a]);
+        who.innerHTML = "<span class='avatar'></span>";
+        who.querySelector(".avatar").textContent = a[0];
+        who.querySelector(".avatar").style.setProperty("--who", AUTHORS[a]);
+        who.addEventListener("click", function(){
+          var i = n.authors.indexOf(a);
+          if(i > -1){ if(n.authors.length > 1) n.authors.splice(i, 1); }
+          else n.authors.push(a);
+          paintNoteAuthors(); save();
+        });
+        authorsWrap.appendChild(who);
       });
-      headRow.appendChild(who);
+      function paintNoteAuthors(){
+        authorsWrap.querySelectorAll("button").forEach(function(b,j){ b.classList.toggle("sel", n.authors.indexOf(AUTHOR_KEYS[j]) > -1); });
+      }
+      paintNoteAuthors();
+      headRow.appendChild(authorsWrap);
       card.appendChild(headRow);
       var ta = document.createElement("textarea");
       ta.value = n.text;
@@ -692,7 +751,7 @@
     });
   }
   $("noteAdd").addEventListener("click", function(){
-    state.notes.unshift({id:uid(), text:"", ts:Date.now(), author:AUTHOR_KEYS[0]});
+    state.notes.unshift({id:uid(), text:"", ts:Date.now(), authors:[AUTHOR_KEYS[0]]});
     save(); renderNotes();
     var ta = notesBox.querySelector("textarea");
     if(ta) ta.focus();
