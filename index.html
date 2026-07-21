@@ -78,6 +78,21 @@
   .sync-chip.busy .dot{background:#F9AB00}
   .sync-chip:hover{background:var(--surface2)}
 
+  /* ── 작성자 아바타 ── */
+  .avatar{
+    display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;
+    width:22px; height:22px; border-radius:50%;
+    background:var(--who,var(--line)); color:#fff; font-size:.68rem; font-weight:700;
+  }
+  .author-pick{display:flex; gap:8px}
+  .author-pick button{
+    flex:1; display:flex; align-items:center; justify-content:center; gap:7px;
+    border:1.5px solid var(--line); border-radius:8px; padding:8px; font-size:.86rem; font-weight:500;
+    background:var(--surface); color:var(--ink); transition:border-color .12s, background .12s;
+  }
+  .author-pick button .avatar{width:20px; height:20px; font-size:.66rem}
+  .author-pick button.sel{border-color:var(--who); background:color-mix(in srgb, var(--who) 12%, var(--surface)); color:var(--ink-strong)}
+
   /* ── 오늘의 한 문장 ── */
   .quote{
     padding:10px 16px; border-radius:8px;
@@ -141,9 +156,13 @@
     transition:box-shadow .12s ease, filter .12s ease;
   }
   .ev:hover{box-shadow:var(--shadow); filter:brightness(1.05); z-index:5}
-  .ev b{display:block; font-size:.78rem; font-weight:500; letter-spacing:0}
+  .ev b{display:block; font-size:.78rem; font-weight:500; letter-spacing:0; padding-right:16px}
   .ev small{color:rgba(255,255,255,.92); font-variant-numeric:tabular-nums}
   .ev .place{display:block; color:rgba(255,255,255,.85); white-space:nowrap; text-overflow:ellipsis; overflow:hidden}
+  .ev .avatar{
+    position:absolute; top:3px; right:3px; width:15px; height:15px; font-size:.58rem;
+    background:#fff; color:var(--who,#333);
+  }
 
   .now-line{
     position:absolute; left:56px; right:0; height:0;
@@ -166,6 +185,13 @@
     transition:box-shadow .15s ease;
   }
   .note:hover{box-shadow:var(--shadow)}
+  .note-head{display:flex; align-items:center; margin-bottom:6px}
+  .note-who{
+    display:inline-flex; align-items:center; gap:6px; border:0; background:transparent;
+    font-size:.74rem; font-weight:600; color:var(--ink-soft); padding:2px 6px 2px 2px; border-radius:20px;
+  }
+  .note-who .avatar{width:18px; height:18px; font-size:.6rem}
+  .note-who:hover{background:var(--surface2)}
   .note textarea{
     width:100%; border:0; background:transparent; resize:none; outline:none;
     font-size:.88rem; line-height:1.55; min-height:2.4em; display:block;
@@ -293,6 +319,10 @@
       <input type="text" id="fPlace" placeholder="예: 독서실 3층" maxlength="40">
     </div>
     <div class="field">
+      <label>작성자</label>
+      <div class="author-pick" id="authorPick"></div>
+    </div>
+    <div class="field">
       <label>색상</label>
       <div class="swatches" id="swatches"></div>
     </div>
@@ -333,6 +363,8 @@
   var START_H = 7, END_H = 24;
   /* 구글 캘린더 이벤트 팔레트: 피콕, 블루베리, 바질, 탠저린, 그레이프, 플라밍고, 세이지, 그래파이트 */
   var COLORS = ["#039BE5","#3F51B5","#0B8043","#F4511E","#8E24AA","#E67C73","#33B679","#616161"];
+  var AUTHORS = { "성주": "#1A73E8", "혜원": "#C2185B" };
+  var AUTHOR_KEYS = Object.keys(AUTHORS);
 
   var QUOTES = [
     ["오늘 걷지 않으면, 내일은 뛰어야 한다.",""],
@@ -370,6 +402,11 @@
   }
   function save(){ localStorage.setItem(KEY, JSON.stringify(state)); scheduleSync(); }
   function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+  function migrateAuthors(){
+    state.events.forEach(function(e){ if(!AUTHORS[e.author]) e.author = AUTHOR_KEYS[0]; });
+    state.notes.forEach(function(n){ if(!AUTHORS[n.author]) n.author = AUTHOR_KEYS[0]; });
+  }
+  migrateAuthors();
 
   var $ = function(id){ return document.getElementById(id); };
   function todayIdx(){ return (new Date().getDay()+6)%7; }
@@ -464,10 +501,14 @@
       var h = (ev.end - ev.start)/60*hourPx;
       el.style.top = (top+1)+"px";
       el.style.height = Math.max(h-3, 18)+"px";
-      el.innerHTML = "<b></b><small>"+fmtMin(ev.start)+"–"+fmtMin(ev.end)+"</small>" +
+      el.innerHTML = "<span class='avatar'></span><b></b><small>"+fmtMin(ev.start)+"–"+fmtMin(ev.end)+"</small>" +
                      (ev.place ? '<span class="place"></span>' : "");
       el.querySelector("b").textContent = ev.title;
       if(ev.place) el.querySelector(".place").textContent = ev.place;
+      var avEl = el.querySelector(".avatar");
+      avEl.textContent = ev.author ? ev.author[0] : "";
+      avEl.style.setProperty("--who", AUTHORS[ev.author] || "#888");
+      avEl.title = ev.author || "";
       el.addEventListener("click", function(){ openModal(ev.id); });
       col.appendChild(el);
     });
@@ -488,8 +529,23 @@
   setInterval(renderNowLine, 60000);
 
   /* ── 일정 모달 ── */
-  var editingId = null, selColor = 0;
+  var editingId = null, selColor = 0, selAuthor = AUTHOR_KEYS[0];
   var daySel = $("fDay");
+  var apick = $("authorPick");
+  AUTHOR_KEYS.forEach(function(a){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.style.setProperty("--who", AUTHORS[a]);
+    b.innerHTML = "<span class='avatar'></span>"+a;
+    b.querySelector(".avatar").textContent = a[0];
+    b.querySelector(".avatar").style.setProperty("--who", AUTHORS[a]);
+    b.addEventListener("click", function(){ selectAuthor(a); });
+    apick.appendChild(b);
+  });
+  function selectAuthor(a){
+    selAuthor = a;
+    apick.querySelectorAll("button").forEach(function(b,j){ b.classList.toggle("sel", AUTHOR_KEYS[j]===a); });
+  }
   DAYS.forEach(function(d,i){
     var o = document.createElement("option");
     o.value = i; o.textContent = d+"요일";
@@ -522,6 +578,7 @@
       $("fEnd").value = fmtMin(ev.end);
       $("fPlace").value = ev.place || "";
       selectColor(ev.color);
+      selectAuthor(AUTHORS[ev.author] ? ev.author : AUTHOR_KEYS[0]);
       $("delBtn").hidden = false;
     }else{
       $("modalTitle").textContent = "일정 추가";
@@ -532,6 +589,7 @@
       $("fEnd").value = fmtMin(Math.min(s+60, END_H*60));
       $("fPlace").value = "";
       selectColor(0);
+      selectAuthor(AUTHOR_KEYS[0]);
       $("delBtn").hidden = true;
     }
     $("overlay").classList.add("open");
@@ -553,7 +611,7 @@
     if(!title){ $("fErr").textContent = "제목을 입력해 주세요."; return; }
     if(en <= s){ $("fErr").textContent = "종료 시각은 시작 시각보다 늦어야 해요."; return; }
     if(s < START_H*60 || en > END_H*60){ $("fErr").textContent = "시간표 범위는 07:00~24:00이에요."; return; }
-    var data = { day:+daySel.value, start:s, end:en, title:title, place:$("fPlace").value.trim(), color:selColor };
+    var data = { day:+daySel.value, start:s, end:en, title:title, place:$("fPlace").value.trim(), color:selColor, author:selAuthor };
     if(editingId){
       var ev = state.events.find(function(x){ return x.id===editingId; });
       Object.assign(ev, data);
@@ -577,6 +635,24 @@
     state.notes.forEach(function(n){
       var card = document.createElement("div");
       card.className = "note";
+      var headRow = document.createElement("div");
+      headRow.className = "note-head";
+      var who = document.createElement("button");
+      who.type = "button"; who.className = "note-who";
+      who.innerHTML = "<span class='avatar'></span><span></span>";
+      function paintWho(){
+        who.querySelector(".avatar").style.setProperty("--who", AUTHORS[n.author]);
+        who.querySelector(".avatar").textContent = n.author[0];
+        who.querySelector("span:last-child").textContent = n.author;
+      }
+      paintWho();
+      who.addEventListener("click", function(){
+        var idx = AUTHOR_KEYS.indexOf(n.author);
+        n.author = AUTHOR_KEYS[(idx+1) % AUTHOR_KEYS.length];
+        paintWho(); save();
+      });
+      headRow.appendChild(who);
+      card.appendChild(headRow);
       var ta = document.createElement("textarea");
       ta.value = n.text;
       ta.placeholder = "메모를 입력하세요…";
@@ -602,7 +678,7 @@
     });
   }
   $("noteAdd").addEventListener("click", function(){
-    state.notes.unshift({id:uid(), text:"", ts:Date.now()});
+    state.notes.unshift({id:uid(), text:"", ts:Date.now(), author:AUTHOR_KEYS[0]});
     save(); renderNotes();
     var ta = notesBox.querySelector("textarea");
     if(ta) ta.focus();
@@ -653,6 +729,7 @@
           pushNow(); // 서버가 비어 있으면 이 기기의 데이터를 올림
         }else{
           state.events = res.events; state.notes = res.notes;
+          migrateAuthors();
           localStorage.setItem(KEY, JSON.stringify(state));
           renderEvents(); renderNotes();
           sync.lastOk = Date.now(); setStatus("ok", "동기화됨");
