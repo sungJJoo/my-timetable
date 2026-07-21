@@ -1,7 +1,7 @@
 // 시간표 앱 백엔드: 이 스프레드시트를 DB로 사용 (Google Apps Script)
 var KEY = "여기에-비밀키를-입력"; // 원하는 문자열로 바꾸고, 앱 동기화 설정에 같은 값을 입력하세요.
 
-var EV_H = ["id", "day", "start", "end", "title", "place", "color", "author"];
+var EV_H = ["id", "day", "start", "end", "title", "place", "color", "author", "until"];
 var NT_H = ["id", "text", "ts", "author"];
 
 function doGet(e) {
@@ -36,7 +36,7 @@ function readAll() {
   var ev = sheet("events", EV_H).getDataRange().getValues().slice(1)
     .filter(function (r) { return r[0] !== ""; })
     .map(function (r) {
-      return { id: String(r[0]), day: +r[1], start: +r[2], end: +r[3], title: String(r[4]), place: String(r[5]), color: +r[6], author: String(r[7] || "") };
+      return { id: String(r[0]), day: +r[1], start: +r[2], end: +r[3], title: String(r[4]), place: String(r[5]), color: +r[6], author: String(r[7] || ""), until: toMonthStr(r[8]) };
     });
   var nt = sheet("notes", NT_H).getDataRange().getValues().slice(1)
     .filter(function (r) { return r[0] !== ""; })
@@ -51,8 +51,10 @@ function writeAll(data) {
   es.clearContents();
   es.appendRow(EV_H);
   if (data.events.length) {
+    // "until"(YYYY-MM) 열이 날짜로 자동 변환되지 않도록 서식을 텍스트로 고정
+    es.getRange(2, EV_H.indexOf("until") + 1, data.events.length, 1).setNumberFormat("@");
     es.getRange(2, 1, data.events.length, EV_H.length).setValues(data.events.map(function (e) {
-      return [e.id, e.day, e.start, e.end, e.title, e.place || "", e.color, e.author || ""];
+      return [e.id, e.day, e.start, e.end, e.title, e.place || "", e.color, e.author || "", e.until || ""];
     }));
   }
   var ns = sheet("notes", NT_H);
@@ -63,6 +65,14 @@ function writeAll(data) {
       return [n.id, n.text, n.ts, n.author || ""];
     }));
   }
+}
+
+function toMonthStr(v) {
+  if (!v) return "";
+  if (Object.prototype.toString.call(v) === "[object Date]") {
+    return v.getFullYear() + "-" + String(v.getMonth() + 1).padStart(2, "0");
+  }
+  return String(v);
 }
 
 function json(o) {

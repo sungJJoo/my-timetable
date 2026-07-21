@@ -163,6 +163,8 @@
     position:absolute; top:3px; right:3px; width:15px; height:15px; font-size:.58rem;
     background:#fff; color:var(--who,#333);
   }
+  .ev.expired{opacity:.38; filter:grayscale(.4)}
+  .ev.expired:hover{opacity:.7; filter:none}
 
   .now-line{
     position:absolute; left:56px; right:0; height:0;
@@ -223,7 +225,7 @@
   .modal h2{margin:0 0 18px; font-size:1.1rem; font-weight:500; color:var(--ink-strong)}
   .field{margin-bottom:12px}
   .field label{display:block; font-size:.75rem; font-weight:500; color:var(--ink-soft); margin-bottom:5px}
-  .field input[type=text],.field select,.field input[type=time]{
+  .field input[type=text],.field select,.field input[type=time],.field input[type=month]{
     width:100%; padding:9px 11px; border-radius:6px; border:1px solid var(--line);
     background:var(--surface); outline:none; transition:border-color .12s;
   }
@@ -303,6 +305,10 @@
     <div class="field">
       <label for="fDay">요일</label>
       <select id="fDay"></select>
+    </div>
+    <div class="field">
+      <label for="fUntil">종료 시점 (선택 · 몇월까지 반복할지)</label>
+      <input type="month" id="fUntil">
     </div>
     <div class="row2">
       <div class="field">
@@ -416,6 +422,10 @@
     if(h === 12) return "오후 12시";
     return h < 12 ? "오전 "+h+"시" : "오후 "+(h-12)+"시";
   }
+  var todayD = new Date();
+  var THIS_MONTH = todayD.getFullYear() + "-" + String(todayD.getMonth()+1).padStart(2,"0");
+  function isExpired(ev){ return !!ev.until && ev.until < THIS_MONTH; }
+  function untilLabel(u){ var p = u.split("-"); return "~"+(+p[1])+"월"; }
 
   /* ── 헤더 날짜 ── */
   var now = new Date();
@@ -495,13 +505,14 @@
       var col = cols[ev.day];
       if(!col) return;
       var el = document.createElement("div");
-      el.className = "ev";
+      el.className = "ev" + (isExpired(ev) ? " expired" : "");
       el.style.setProperty("--ev", COLORS[ev.color] || COLORS[0]);
       var top = (ev.start - START_H*60)/60*hourPx;
       var h = (ev.end - ev.start)/60*hourPx;
       el.style.top = (top+1)+"px";
       el.style.height = Math.max(h-3, 18)+"px";
-      el.innerHTML = "<span class='avatar'></span><b></b><small>"+fmtMin(ev.start)+"–"+fmtMin(ev.end)+"</small>" +
+      el.innerHTML = "<span class='avatar'></span><b></b><small>"+fmtMin(ev.start)+"–"+fmtMin(ev.end)+
+                     (ev.until ? " · "+untilLabel(ev.until)+(isExpired(ev)?" 종료":"") : "")+"</small>" +
                      (ev.place ? '<span class="place"></span>' : "");
       el.querySelector("b").textContent = ev.title;
       if(ev.place) el.querySelector(".place").textContent = ev.place;
@@ -576,6 +587,7 @@
       daySel.value = ev.day;
       $("fStart").value = fmtMin(ev.start);
       $("fEnd").value = fmtMin(ev.end);
+      $("fUntil").value = ev.until || "";
       $("fPlace").value = ev.place || "";
       selectColor(ev.color);
       selectAuthor(AUTHORS[ev.author] ? ev.author : AUTHOR_KEYS[0]);
@@ -587,6 +599,7 @@
       var s = (startMin != null) ? startMin : 9*60;
       $("fStart").value = fmtMin(s);
       $("fEnd").value = fmtMin(Math.min(s+60, END_H*60));
+      $("fUntil").value = "";
       $("fPlace").value = "";
       selectColor(0);
       selectAuthor(AUTHOR_KEYS[0]);
@@ -611,7 +624,8 @@
     if(!title){ $("fErr").textContent = "제목을 입력해 주세요."; return; }
     if(en <= s){ $("fErr").textContent = "종료 시각은 시작 시각보다 늦어야 해요."; return; }
     if(s < START_H*60 || en > END_H*60){ $("fErr").textContent = "시간표 범위는 07:00~24:00이에요."; return; }
-    var data = { day:+daySel.value, start:s, end:en, title:title, place:$("fPlace").value.trim(), color:selColor, author:selAuthor };
+    var until = $("fUntil").value;
+    var data = { day:+daySel.value, start:s, end:en, title:title, place:$("fPlace").value.trim(), color:selColor, author:selAuthor, until:until };
     if(editingId){
       var ev = state.events.find(function(x){ return x.id===editingId; });
       Object.assign(ev, data);
