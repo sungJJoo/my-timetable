@@ -1,0 +1,714 @@
+<!-- 개인 주간 시간표 앱 (구글 캘린더 스타일): 일정 추가·수정·삭제, 오늘의 한 문장, 메모, 구글 시트 동기화 -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>내 시간표</title>
+<style>
+  :root{
+    --bg:#FFFFFF; --surface:#FFFFFF; --surface2:#F1F3F4;
+    --ink:#3C4043; --ink-strong:#202124; --ink-soft:#70757A; --line:#DADCE0;
+    --accent:#1A73E8; --accent-soft:#E8F0FE; --accent-text:#1967D2;
+    --danger:#D93025; --now:#EA4335;
+    --shadow:0 1px 2px rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
+    --shadow-lg:0 8px 12px 6px rgba(60,64,67,.15), 0 4px 4px rgba(60,64,67,.3);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#1F1F1F; --surface:#1F1F1F; --surface2:#2D2E31;
+      --ink:#E3E3E3; --ink-strong:#F1F3F4; --ink-soft:#9AA0A6; --line:#444746;
+      --accent:#8AB4F8; --accent-soft:#394457; --accent-text:#AECBFA;
+      --danger:#F28B82; --now:#F28B82;
+      --shadow:0 1px 2px rgba(0,0,0,.5), 0 1px 3px 1px rgba(0,0,0,.35);
+      --shadow-lg:0 8px 12px 6px rgba(0,0,0,.35), 0 4px 4px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#FFFFFF; --surface:#FFFFFF; --surface2:#F1F3F4;
+    --ink:#3C4043; --ink-strong:#202124; --ink-soft:#70757A; --line:#DADCE0;
+    --accent:#1A73E8; --accent-soft:#E8F0FE; --accent-text:#1967D2;
+    --danger:#D93025; --now:#EA4335;
+    --shadow:0 1px 2px rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
+    --shadow-lg:0 8px 12px 6px rgba(60,64,67,.15), 0 4px 4px rgba(60,64,67,.3);
+  }
+  :root[data-theme="dark"]{
+    --bg:#1F1F1F; --surface:#1F1F1F; --surface2:#2D2E31;
+    --ink:#E3E3E3; --ink-strong:#F1F3F4; --ink-soft:#9AA0A6; --line:#444746;
+    --accent:#8AB4F8; --accent-soft:#394457; --accent-text:#AECBFA;
+    --danger:#F28B82; --now:#F28B82;
+    --shadow:0 1px 2px rgba(0,0,0,.5), 0 1px 3px 1px rgba(0,0,0,.35);
+    --shadow-lg:0 8px 12px 6px rgba(0,0,0,.35), 0 4px 4px rgba(0,0,0,.5);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:"Google Sans Text","Google Sans",Roboto,"Segoe UI","Pretendard Variable",Pretendard,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+  button{font:inherit; color:inherit; cursor:pointer}
+  input,select,textarea{font:inherit; color:inherit}
+
+  .wrap{max-width:1240px; margin:0 auto; padding:0 16px 48px}
+
+  /* ── 상단 바 (GCal 헤더) ── */
+  header{
+    display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+    padding:12px 0; border-bottom:1px solid var(--line); margin-bottom:14px;
+  }
+  .brand{display:flex; align-items:baseline; gap:14px; flex-wrap:wrap}
+  h1{margin:0; font-size:1.375rem; font-weight:500; color:var(--ink-strong); letter-spacing:0}
+  .date-line{font-size:.85rem; color:var(--ink-soft)}
+  .head-actions{display:flex; align-items:center; gap:12px; flex-wrap:wrap}
+  .add-btn{
+    display:inline-flex; align-items:center; gap:10px;
+    border:1px solid var(--line); border-radius:24px; padding:10px 20px 10px 14px;
+    background:var(--surface); color:var(--ink); font-weight:500; font-size:.9rem;
+    box-shadow:var(--shadow); transition:box-shadow .15s ease, background .15s ease;
+  }
+  .add-btn .plus{color:var(--accent); font-size:1.25rem; line-height:1; font-weight:400}
+  .add-btn:hover{box-shadow:var(--shadow-lg); background:var(--surface2)}
+  .sync-chip{
+    display:inline-flex; align-items:center; gap:7px;
+    border:1px solid var(--line); background:var(--surface);
+    border-radius:999px; padding:7px 13px; font-size:.78rem; font-weight:500;
+    color:var(--ink-soft);
+  }
+  .sync-chip .dot{width:8px; height:8px; border-radius:50%; background:var(--line); flex-shrink:0}
+  .sync-chip.ok .dot{background:#188038}
+  .sync-chip.err .dot{background:var(--now)}
+  .sync-chip.busy .dot{background:#F9AB00}
+  .sync-chip:hover{background:var(--surface2)}
+
+  /* ── 오늘의 한 문장 ── */
+  .quote{
+    padding:10px 16px; border-radius:8px;
+    background:var(--accent-soft); color:var(--accent-text);
+    display:flex; align-items:center; gap:12px; font-size:.9rem;
+  }
+  .quote-text{flex:1; line-height:1.5}
+  .quote-by{opacity:.75; margin-left:.5em; font-size:.8rem}
+  .quote-next{
+    flex-shrink:0; border:0; background:transparent; color:inherit;
+    border-radius:50%; width:32px; height:32px; font-size:1rem;
+    transition:background .15s ease;
+  }
+  .quote-next:hover{background:rgba(26,115,232,.12)}
+
+  /* ── 본문 레이아웃 ── */
+  .main{display:flex; gap:20px; margin-top:16px; align-items:flex-start}
+  .board{flex:1 1 auto; min-width:0}
+  .aside{flex:0 0 272px}
+  @media (max-width:900px){
+    .main{flex-direction:column; align-items:stretch}
+    .board{width:100%}
+    .aside{flex:1 1 auto; width:100%}
+  }
+
+  .panel-label{
+    font-size:.72rem; font-weight:500; letter-spacing:.08em; color:var(--ink-soft);
+    margin:0 0 8px 2px;
+  }
+
+  /* ── 시간표 그리드 (GCal 주간 뷰) ── */
+  .grid-card{background:var(--surface); border:1px solid var(--line); border-radius:8px; overflow-x:auto}
+  .grid{min-width:660px; --hour:48px; position:relative}
+  .grid-head{display:grid; grid-template-columns:56px repeat(7,1fr); border-bottom:1px solid var(--line)}
+  .gh-day{padding:8px 4px 10px; text-align:center}
+  .gh-day .dow{display:block; font-size:.69rem; font-weight:500; letter-spacing:.08em; color:var(--ink-soft)}
+  .gh-day .num{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:36px; height:36px; border-radius:50%; margin-top:2px;
+    font-size:1.35rem; font-weight:400; color:var(--ink);
+    font-variant-numeric:tabular-nums;
+  }
+  .gh-day.today .dow{color:var(--accent)}
+  .gh-day.today .num{background:var(--accent); color:var(--bg); font-weight:500}
+  .gh-day:not(.today) .num:hover{background:var(--surface2)}
+  .grid-body{display:grid; grid-template-columns:56px repeat(7,1fr); position:relative}
+  .hours{display:flex; flex-direction:column}
+  .hours span{
+    height:var(--hour); font-size:.65rem; color:var(--ink-soft); text-align:right;
+    padding-right:8px; transform:translateY(-.7em); white-space:nowrap;
+  }
+  .day-col{position:relative; border-left:1px solid var(--line)}
+  .day-col .slot{height:var(--hour); border-bottom:1px solid var(--line)}
+  .day-col .slot:last-child{border-bottom:0}
+  .day-col:hover{background:color-mix(in srgb, var(--ink) 3%, transparent)}
+
+  .ev{
+    position:absolute; left:2px; right:4px; border-radius:4px; padding:4px 8px;
+    background:var(--ev); color:#fff;
+    font-size:.74rem; line-height:1.35; overflow:hidden; cursor:pointer;
+    transition:box-shadow .12s ease, filter .12s ease;
+  }
+  .ev:hover{box-shadow:var(--shadow); filter:brightness(1.05); z-index:5}
+  .ev b{display:block; font-size:.78rem; font-weight:500; letter-spacing:0}
+  .ev small{color:rgba(255,255,255,.92); font-variant-numeric:tabular-nums}
+  .ev .place{display:block; color:rgba(255,255,255,.85); white-space:nowrap; text-overflow:ellipsis; overflow:hidden}
+
+  .now-line{
+    position:absolute; left:56px; right:0; height:0;
+    border-top:2px solid var(--now); z-index:6; pointer-events:none;
+  }
+  .now-line::before{
+    content:""; position:absolute; left:-6px; top:-7px; width:12px; height:12px;
+    border-radius:50%; background:var(--now);
+  }
+
+  .empty-hint{
+    padding:10px 16px; font-size:.85rem; color:var(--ink-soft);
+    border-top:1px dashed var(--line); text-align:center;
+  }
+
+  /* ── 메모 ── */
+  .note{
+    background:var(--surface); border:1px solid var(--line); border-radius:8px;
+    padding:12px 14px; margin-bottom:10px; position:relative;
+    transition:box-shadow .15s ease;
+  }
+  .note:hover{box-shadow:var(--shadow)}
+  .note textarea{
+    width:100%; border:0; background:transparent; resize:none; outline:none;
+    font-size:.88rem; line-height:1.55; min-height:2.4em; display:block;
+  }
+  .note time{font-size:.7rem; color:var(--ink-soft); font-variant-numeric:tabular-nums}
+  .note .del{
+    position:absolute; top:8px; right:8px; border:0; background:transparent;
+    color:var(--ink-soft); font-size:.9rem; border-radius:50%; width:28px; height:28px;
+    opacity:0; transition:opacity .15s, background .15s;
+  }
+  .note:hover .del, .note:focus-within .del{opacity:1}
+  .note .del:hover{color:var(--danger); background:var(--surface2)}
+  .note-add{
+    width:100%; padding:10px; border-radius:8px; border:1px dashed var(--line);
+    background:transparent; color:var(--ink-soft); font-size:.88rem;
+  }
+  .note-add:hover{border-color:var(--accent); color:var(--accent); background:var(--accent-soft)}
+
+  /* ── 모달 (Material 다이얼로그) ── */
+  .overlay{
+    position:fixed; inset:0; background:rgba(32,33,36,.5); z-index:50;
+    display:none; align-items:center; justify-content:center; padding:20px;
+  }
+  .overlay.open{display:flex}
+  .modal{
+    background:var(--surface); border-radius:12px; box-shadow:var(--shadow-lg);
+    width:100%; max-width:400px; padding:24px;
+  }
+  .modal h2{margin:0 0 18px; font-size:1.1rem; font-weight:500; color:var(--ink-strong)}
+  .field{margin-bottom:12px}
+  .field label{display:block; font-size:.75rem; font-weight:500; color:var(--ink-soft); margin-bottom:5px}
+  .field input[type=text],.field select,.field input[type=time]{
+    width:100%; padding:9px 11px; border-radius:6px; border:1px solid var(--line);
+    background:var(--surface); outline:none; transition:border-color .12s;
+  }
+  .field input:focus,.field select:focus{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent)}
+  .row2{display:flex; gap:10px}
+  .row2 .field{flex:1}
+  .swatches{display:flex; gap:8px; flex-wrap:wrap}
+  .swatches button{
+    width:28px; height:28px; border-radius:50%; border:2px solid transparent;
+    background:var(--sw); transition:transform .1s; position:relative;
+  }
+  .swatches button:hover{transform:scale(1.12)}
+  .swatches button.sel{transform:scale(1.12)}
+  .swatches button.sel::after{
+    content:"✓"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:.8rem; font-weight:700;
+  }
+  .err{color:var(--danger); font-size:.82rem; min-height:1.3em; margin:4px 0 8px}
+  .modal-actions{display:flex; gap:8px; margin-top:6px; justify-content:flex-end; align-items:center}
+  .btn{border:0; border-radius:20px; padding:9px 20px; font-weight:500; font-size:.88rem; background:transparent}
+  .btn.primary{background:var(--accent); color:var(--bg)}
+  .btn.primary:hover{filter:brightness(1.08); box-shadow:var(--shadow)}
+  .btn.ghost{color:var(--accent-text)}
+  .btn.ghost:hover{background:var(--accent-soft)}
+  .btn.danger{color:var(--danger); margin-right:auto}
+  .btn.danger:hover{background:color-mix(in srgb, var(--danger) 10%, transparent)}
+
+  :is(button,input,select,textarea):focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important; animation:none !important}
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <h1>내 시간표</h1>
+      <span class="date-line" id="dateLine"></span>
+    </div>
+    <div class="head-actions">
+      <button class="sync-chip" id="syncChip" title="동기화 설정"><span class="dot"></span><span id="syncLabel">동기화 미설정</span></button>
+      <button class="add-btn" id="addBtn"><span class="plus">＋</span>만들기</button>
+    </div>
+  </header>
+
+  <div class="quote">
+    <div class="quote-text" id="quoteText"></div>
+    <button class="quote-next" id="quoteNext" title="다른 문장 보기" aria-label="다른 문장 보기">↻</button>
+  </div>
+
+  <div class="main">
+    <section class="board">
+      <div class="grid-card">
+        <div class="grid" id="grid">
+          <div class="grid-head" id="gridHead"></div>
+          <div class="grid-body" id="gridBody"></div>
+        </div>
+        <div class="empty-hint" id="emptyHint" hidden>빈 시간 칸을 클릭하면 그 자리에 바로 일정을 추가할 수 있어요.</div>
+      </div>
+    </section>
+
+    <aside class="aside">
+      <p class="panel-label">메모</p>
+      <div id="notes"></div>
+      <button class="note-add" id="noteAdd">+ 메모 추가</button>
+    </aside>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <form class="modal" id="modal">
+    <h2 id="modalTitle">일정 추가</h2>
+    <div class="field">
+      <label for="fTitle">제목 (과목·할 일)</label>
+      <input type="text" id="fTitle" placeholder="예: 수학 문제풀이" required maxlength="30">
+    </div>
+    <div class="field">
+      <label for="fDay">요일</label>
+      <select id="fDay"></select>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label for="fStart">시작</label>
+        <input type="time" id="fStart" step="300" required>
+      </div>
+      <div class="field">
+        <label for="fEnd">종료</label>
+        <input type="time" id="fEnd" step="300" required>
+      </div>
+    </div>
+    <div class="field">
+      <label for="fPlace">장소 · 메모 (선택)</label>
+      <input type="text" id="fPlace" placeholder="예: 독서실 3층" maxlength="40">
+    </div>
+    <div class="field">
+      <label>색상</label>
+      <div class="swatches" id="swatches"></div>
+    </div>
+    <div class="err" id="fErr"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn danger" id="delBtn" hidden>삭제</button>
+      <button type="button" class="btn ghost" id="cancelBtn">취소</button>
+      <button type="submit" class="btn primary" id="saveBtn">저장</button>
+    </div>
+  </form>
+</div>
+
+<div class="overlay" id="setOverlay">
+  <form class="modal" id="setModal">
+    <h2>구글 시트 동기화 설정</h2>
+    <div class="field">
+      <label for="sUrl">Apps Script 웹 앱 URL</label>
+      <input type="text" id="sUrl" placeholder="https://script.google.com/macros/s/…/exec">
+    </div>
+    <div class="field">
+      <label for="sKey">비밀 키</label>
+      <input type="text" id="sKey" placeholder="스크립트의 KEY와 같은 값">
+    </div>
+    <div class="err" id="sErr"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn danger" id="sOff" hidden>연결 해제</button>
+      <button type="button" class="btn ghost" id="sCancel">취소</button>
+      <button type="submit" class="btn primary" id="sSave">연결 테스트 후 저장</button>
+    </div>
+  </form>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var KEY = "fox-timetable-v1";
+  var DAYS = ["월","화","수","목","금","토","일"];
+  var START_H = 7, END_H = 24;
+  /* 구글 캘린더 이벤트 팔레트: 피콕, 블루베리, 바질, 탠저린, 그레이프, 플라밍고, 세이지, 그래파이트 */
+  var COLORS = ["#039BE5","#3F51B5","#0B8043","#F4511E","#8E24AA","#E67C73","#33B679","#616161"];
+
+  var QUOTES = [
+    ["오늘 걷지 않으면, 내일은 뛰어야 한다.",""],
+    ["노력은 배신하지 않는다.",""],
+    ["작은 성취가 모여 큰 자신감이 된다.",""],
+    ["시작이 반이다.","아리스토텔레스"],
+    ["천 리 길도 한 걸음부터.",""],
+    ["포기하지 않는 한, 실패는 없다.",""],
+    ["어제의 나와 경쟁하라.",""],
+    ["할 수 있다고 믿는 사람이 결국 해낸다.",""],
+    ["지금 이 순간에도 미래는 만들어지고 있다.",""],
+    ["공부는 배신하지 않는 유일한 친구다.",""],
+    ["가장 어두운 밤도 끝나고 해는 뜬다.","빅토르 위고"],
+    ["행동은 모든 성공의 기초다.","파블로 피카소"],
+    ["성공은 매일 반복한 작은 노력들의 합이다.",""],
+    ["오늘 흘린 땀은 내일의 웃음이 된다.",""],
+    ["집중하는 한 시간이 흘려보낸 하루를 이긴다.",""],
+    ["꿈을 날짜와 함께 적으면 목표가 된다.",""],
+    ["멈추지 않는 이상, 얼마나 천천히 가는지는 중요하지 않다.","공자"],
+    ["배움에는 지름길이 없다. 그래서 공평하다.",""],
+    ["지금 자면 꿈을 꾸지만, 지금 공부하면 꿈을 이룬다.",""],
+    ["미래의 나에게 부끄럽지 않은 오늘을 보내자.",""],
+    ["책상 앞에 앉는 것, 그것이 재능이다.",""],
+    ["끝날 때까지는 끝난 게 아니다.","요기 베라"]
+  ];
+
+  /* ── 저장소 ── */
+  var state = load();
+  function load(){
+    try{
+      var d = JSON.parse(localStorage.getItem(KEY));
+      if(d && d.events && d.notes) return d;
+    }catch(e){}
+    return {events:[], notes:[]};
+  }
+  function save(){ localStorage.setItem(KEY, JSON.stringify(state)); scheduleSync(); }
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+  var $ = function(id){ return document.getElementById(id); };
+  function todayIdx(){ return (new Date().getDay()+6)%7; }
+  function toMin(t){ var p=t.split(":"); return +p[0]*60 + +p[1]; }
+  function fmtMin(m){ return String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0"); }
+  function hourLabel(h){
+    if(h === 12) return "오후 12시";
+    return h < 12 ? "오전 "+h+"시" : "오후 "+(h-12)+"시";
+  }
+
+  /* ── 헤더 날짜 ── */
+  var now = new Date();
+  $("dateLine").textContent = now.getFullYear()+"년 "+(now.getMonth()+1)+"월 "+now.getDate()+"일 "+DAYS[todayIdx()]+"요일";
+
+  /* ── 오늘의 한 문장 ── */
+  var qIdx = (function(){
+    var s = new Date(now.getFullYear(),0,0);
+    return Math.floor((now - s)/86400000) % QUOTES.length;
+  })();
+  function renderQuote(){
+    var q = QUOTES[qIdx];
+    $("quoteText").innerHTML = "“" + q[0] + "”" +
+      (q[1] ? '<span class="quote-by">— '+q[1]+"</span>" : "");
+  }
+  $("quoteNext").addEventListener("click", function(){
+    qIdx = (qIdx+1) % QUOTES.length; renderQuote();
+  });
+  renderQuote();
+
+  /* ── 시간표 그리드 ── */
+  var head = $("gridHead");
+  head.innerHTML = "<div></div>";
+  var monday = new Date(now);
+  monday.setDate(now.getDate() - todayIdx());
+  DAYS.forEach(function(d,i){
+    var dt = new Date(monday);
+    dt.setDate(monday.getDate() + i);
+    var el = document.createElement("div");
+    el.className = "gh-day" + (i === todayIdx() ? " today" : "");
+    el.innerHTML = '<span class="dow"></span><span class="num"></span>';
+    el.querySelector(".dow").textContent = d;
+    el.querySelector(".num").textContent = dt.getDate();
+    head.appendChild(el);
+  });
+
+  var body = $("gridBody");
+  var hourPx = 48;
+  function buildGrid(){
+    body.innerHTML = "";
+    var hours = document.createElement("div");
+    hours.className = "hours";
+    for(var h=START_H; h<END_H; h++){
+      var s = document.createElement("span");
+      s.textContent = hourLabel(h);
+      hours.appendChild(s);
+    }
+    body.appendChild(hours);
+
+    DAYS.forEach(function(_,di){
+      var col = document.createElement("div");
+      col.className = "day-col";
+      col.dataset.day = di;
+      for(var h=START_H; h<END_H; h++){
+        var slot = document.createElement("div");
+        slot.className = "slot";
+        col.appendChild(slot);
+      }
+      col.addEventListener("click", function(e){
+        if(e.target.closest(".ev")) return;
+        var rect = col.getBoundingClientRect();
+        var min = START_H*60 + Math.floor((e.clientY-rect.top)/hourPx*60);
+        min = Math.round(min/30)*30;
+        min = Math.max(START_H*60, Math.min(min, END_H*60-60));
+        openModal(null, di, min);
+      });
+      body.appendChild(col);
+    });
+    renderEvents();
+    renderNowLine();
+  }
+
+  function renderEvents(){
+    body.querySelectorAll(".ev").forEach(function(n){ n.remove(); });
+    var cols = body.querySelectorAll(".day-col");
+    state.events.forEach(function(ev){
+      var col = cols[ev.day];
+      if(!col) return;
+      var el = document.createElement("div");
+      el.className = "ev";
+      el.style.setProperty("--ev", COLORS[ev.color] || COLORS[0]);
+      var top = (ev.start - START_H*60)/60*hourPx;
+      var h = (ev.end - ev.start)/60*hourPx;
+      el.style.top = (top+1)+"px";
+      el.style.height = Math.max(h-3, 18)+"px";
+      el.innerHTML = "<b></b><small>"+fmtMin(ev.start)+"–"+fmtMin(ev.end)+"</small>" +
+                     (ev.place ? '<span class="place"></span>' : "");
+      el.querySelector("b").textContent = ev.title;
+      if(ev.place) el.querySelector(".place").textContent = ev.place;
+      el.addEventListener("click", function(){ openModal(ev.id); });
+      col.appendChild(el);
+    });
+    $("emptyHint").hidden = state.events.length > 0;
+  }
+
+  var nowLine = null;
+  function renderNowLine(){
+    if(nowLine){ nowLine.remove(); nowLine = null; }
+    var n = new Date();
+    var m = n.getHours()*60 + n.getMinutes();
+    if(m < START_H*60 || m >= END_H*60) return;
+    nowLine = document.createElement("div");
+    nowLine.className = "now-line";
+    nowLine.style.top = ((m-START_H*60)/60*hourPx + head.offsetHeight)+"px";
+    $("grid").appendChild(nowLine);
+  }
+  setInterval(renderNowLine, 60000);
+
+  /* ── 일정 모달 ── */
+  var editingId = null, selColor = 0;
+  var daySel = $("fDay");
+  DAYS.forEach(function(d,i){
+    var o = document.createElement("option");
+    o.value = i; o.textContent = d+"요일";
+    daySel.appendChild(o);
+  });
+  var sw = $("swatches");
+  COLORS.forEach(function(c,i){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.style.setProperty("--sw", c);
+    b.setAttribute("aria-label", "색상 "+(i+1));
+    b.addEventListener("click", function(){ selectColor(i); });
+    sw.appendChild(b);
+  });
+  function selectColor(i){
+    selColor = i;
+    sw.querySelectorAll("button").forEach(function(b,j){ b.classList.toggle("sel", j===i); });
+  }
+
+  function openModal(id, day, startMin){
+    editingId = id;
+    $("fErr").textContent = "";
+    if(id){
+      var ev = state.events.find(function(e){ return e.id===id; });
+      if(!ev) return;
+      $("modalTitle").textContent = "일정 수정";
+      $("fTitle").value = ev.title;
+      daySel.value = ev.day;
+      $("fStart").value = fmtMin(ev.start);
+      $("fEnd").value = fmtMin(ev.end);
+      $("fPlace").value = ev.place || "";
+      selectColor(ev.color);
+      $("delBtn").hidden = false;
+    }else{
+      $("modalTitle").textContent = "일정 추가";
+      $("fTitle").value = "";
+      daySel.value = (day != null) ? day : todayIdx();
+      var s = (startMin != null) ? startMin : 9*60;
+      $("fStart").value = fmtMin(s);
+      $("fEnd").value = fmtMin(Math.min(s+60, END_H*60));
+      $("fPlace").value = "";
+      selectColor(0);
+      $("delBtn").hidden = true;
+    }
+    $("overlay").classList.add("open");
+    $("fTitle").focus();
+  }
+  function closeModal(){ $("overlay").classList.remove("open"); }
+
+  $("addBtn").addEventListener("click", function(){ openModal(null); });
+  $("cancelBtn").addEventListener("click", closeModal);
+  $("overlay").addEventListener("click", function(e){ if(e.target === this) closeModal(); });
+  document.addEventListener("keydown", function(e){
+    if(e.key==="Escape"){ closeModal(); closeSet(); }
+  });
+
+  $("modal").addEventListener("submit", function(e){
+    e.preventDefault();
+    var title = $("fTitle").value.trim();
+    var s = toMin($("fStart").value), en = toMin($("fEnd").value);
+    if(!title){ $("fErr").textContent = "제목을 입력해 주세요."; return; }
+    if(en <= s){ $("fErr").textContent = "종료 시각은 시작 시각보다 늦어야 해요."; return; }
+    if(s < START_H*60 || en > END_H*60){ $("fErr").textContent = "시간표 범위는 07:00~24:00이에요."; return; }
+    var data = { day:+daySel.value, start:s, end:en, title:title, place:$("fPlace").value.trim(), color:selColor };
+    if(editingId){
+      var ev = state.events.find(function(x){ return x.id===editingId; });
+      Object.assign(ev, data);
+    }else{
+      data.id = uid();
+      state.events.push(data);
+    }
+    save(); renderEvents(); closeModal();
+  });
+
+  $("delBtn").addEventListener("click", function(){
+    if(!editingId) return;
+    state.events = state.events.filter(function(x){ return x.id!==editingId; });
+    save(); renderEvents(); closeModal();
+  });
+
+  /* ── 메모 ── */
+  var notesBox = $("notes");
+  function renderNotes(){
+    notesBox.innerHTML = "";
+    state.notes.forEach(function(n){
+      var card = document.createElement("div");
+      card.className = "note";
+      var ta = document.createElement("textarea");
+      ta.value = n.text;
+      ta.placeholder = "메모를 입력하세요…";
+      ta.rows = 1;
+      function fit(){ ta.style.height="auto"; ta.style.height = ta.scrollHeight+"px"; }
+      ta.addEventListener("input", function(){
+        n.text = ta.value; n.ts = Date.now(); fit();
+        clearTimeout(ta._t); ta._t = setTimeout(save, 300);
+      });
+      var t = document.createElement("time");
+      var d = new Date(n.ts);
+      t.textContent = (d.getMonth()+1)+"/"+d.getDate()+" "+fmtMin(d.getHours()*60+d.getMinutes());
+      var del = document.createElement("button");
+      del.className = "del"; del.textContent = "✕";
+      del.setAttribute("aria-label","메모 삭제");
+      del.addEventListener("click", function(){
+        state.notes = state.notes.filter(function(x){ return x.id!==n.id; });
+        save(); renderNotes();
+      });
+      card.appendChild(ta); card.appendChild(t); card.appendChild(del);
+      notesBox.appendChild(card);
+      fit();
+    });
+  }
+  $("noteAdd").addEventListener("click", function(){
+    state.notes.unshift({id:uid(), text:"", ts:Date.now()});
+    save(); renderNotes();
+    var ta = notesBox.querySelector("textarea");
+    if(ta) ta.focus();
+  });
+
+  /* ── 구글 시트 동기화 ── */
+  var SKEY = "fox-timetable-sync-v1";
+  var sync = { cfg: loadCfg(), timer: null, lastOk: 0 };
+  function loadCfg(){
+    try{
+      var c = JSON.parse(localStorage.getItem(SKEY));
+      if(c && c.url) return c;
+    }catch(e){}
+    return null;
+  }
+  var chip = $("syncChip"), chipLabel = $("syncLabel");
+  function setStatus(mode, msg){
+    chip.className = "sync-chip " + ({ok:"ok", err:"err", busy:"busy"}[mode] || "");
+    chipLabel.textContent = msg;
+  }
+  function serverGet(cfg){
+    return fetch(cfg.url + (cfg.url.indexOf("?")<0 ? "?" : "&") + "key=" + encodeURIComponent(cfg.key||""))
+      .then(function(r){ return r.json(); });
+  }
+  function serverPost(cfg, data){
+    return fetch(cfg.url, { method:"POST", body: JSON.stringify({ key: cfg.key||"", data: data }) })
+      .then(function(r){ return r.json(); });
+  }
+  function scheduleSync(){
+    if(!sync.cfg) return;
+    setStatus("busy", "저장 중…");
+    clearTimeout(sync.timer);
+    sync.timer = setTimeout(pushNow, 800);
+  }
+  function pushNow(){
+    sync.timer = null;
+    serverPost(sync.cfg, { events: state.events, notes: state.notes }).then(function(res){
+      if(res && res.ok){ sync.lastOk = Date.now(); setStatus("ok", "동기화됨"); }
+      else setStatus("err", "연결 오류");
+    }).catch(function(){ setStatus("err", "오프라인 · 로컬 저장됨"); });
+  }
+  function pullNow(initial){
+    setStatus("busy", "불러오는 중…");
+    serverGet(sync.cfg).then(function(res){
+      if(res && res.events){
+        var serverEmpty = res.events.length===0 && res.notes.length===0;
+        if(initial && serverEmpty && (state.events.length || state.notes.length)){
+          pushNow(); // 서버가 비어 있으면 이 기기의 데이터를 올림
+        }else{
+          state.events = res.events; state.notes = res.notes;
+          localStorage.setItem(KEY, JSON.stringify(state));
+          renderEvents(); renderNotes();
+          sync.lastOk = Date.now(); setStatus("ok", "동기화됨");
+        }
+      }else setStatus("err", "키가 틀렸어요");
+    }).catch(function(){ setStatus("err", "오프라인 · 로컬 저장됨"); });
+  }
+  window.addEventListener("focus", function(){
+    if(sync.cfg && !sync.timer && Date.now() - sync.lastOk > 60000) pullNow(false);
+  });
+
+  /* 동기화 설정 모달 */
+  function openSet(){
+    $("sErr").textContent = "";
+    $("sUrl").value = sync.cfg ? sync.cfg.url : "";
+    $("sKey").value = sync.cfg ? (sync.cfg.key||"") : "";
+    $("sOff").hidden = !sync.cfg;
+    $("setOverlay").classList.add("open");
+    $("sUrl").focus();
+  }
+  function closeSet(){ $("setOverlay").classList.remove("open"); }
+  chip.addEventListener("click", openSet);
+  $("sCancel").addEventListener("click", closeSet);
+  $("setOverlay").addEventListener("click", function(e){ if(e.target === this) closeSet(); });
+  $("sOff").addEventListener("click", function(){
+    localStorage.removeItem(SKEY);
+    sync.cfg = null;
+    setStatus("", "동기화 미설정");
+    closeSet();
+  });
+  $("setModal").addEventListener("submit", function(e){
+    e.preventDefault();
+    var url = $("sUrl").value.trim(), key = $("sKey").value.trim();
+    if(url.indexOf("http") !== 0){ $("sErr").textContent = "웹 앱 URL을 입력해 주세요."; return; }
+    $("sErr").textContent = "";
+    $("sSave").disabled = true; $("sSave").textContent = "확인 중…";
+    var cfg = { url: url, key: key };
+    serverGet(cfg).then(function(res){
+      if(res && res.events){
+        sync.cfg = cfg;
+        localStorage.setItem(SKEY, JSON.stringify(cfg));
+        closeSet();
+        pullNow(true);
+      }else{
+        $("sErr").textContent = (res && res.error === "bad key") ? "비밀 키가 스크립트의 KEY와 달라요." : "응답이 올바르지 않아요. URL을 확인해 주세요.";
+      }
+    }).catch(function(){
+      $("sErr").textContent = "연결하지 못했어요. URL과 배포 설정(액세스: 모든 사용자)을 확인해 주세요.";
+    }).finally(function(){
+      $("sSave").disabled = false; $("sSave").textContent = "연결 테스트 후 저장";
+    });
+  });
+
+  buildGrid();
+  renderNotes();
+  if(sync.cfg) pullNow(true);
+  else setStatus("", "동기화 미설정");
+})();
+</script>
